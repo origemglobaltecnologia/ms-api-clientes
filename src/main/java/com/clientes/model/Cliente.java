@@ -1,61 +1,66 @@
 package com.clientes.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import java.time.LocalDateTime;
+import java.util.UUID;
+import java.util.Objects;
 
 @Entity
 @Table(name = "clientes")
 public class Cliente {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue
+    private UUID id;
 
+    @NotNull(message = "Nome não pode ser nulo")
     @Column(nullable = false)
     private String nome;
 
+    @NotNull(message = "Login não pode ser nulo")
     @Column(nullable = false, unique = true)
-    private String email;
+    private String login; // O login será o campo único para acesso
 
+    @NotNull(message = "Senha não pode ser nula")
     @Column(nullable = false)
-    private String senha;
+    // Nota: Em um sistema real, use @JsonIgnore (da Jackson) para não expor a senha em serializações.
+    private String senha; 
 
-    private String telefone;
-    private String endereco;
-
-    @Enumerated(EnumType.STRING)
-    private TipoUsuario tipoUsuario; // COMPRADOR, VENDEDOR ou AMBOS
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime dataCadastro = LocalDateTime.now();
 
     public Cliente() {}
 
-    public Cliente(String nome, String email, String senha, String telefone, String endereco, TipoUsuario tipoUsuario) {
+    public Cliente(String nome, String login, String senha) {
         this.nome = nome;
-        this.email = email;
+        this.login = login;
         this.senha = senha;
-        this.telefone = telefone;
-        this.endereco = endereco;
-        this.tipoUsuario = tipoUsuario;
     }
 
     // Getters e Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
     public String getNome() { return nome; }
     public void setNome(String nome) { this.nome = nome; }
-
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-
+    public String getLogin() { return login; }
+    public void setLogin(String login) { this.login = login; }
     public String getSenha() { return senha; }
     public void setSenha(String senha) { this.senha = senha; }
+    public LocalDateTime getDataCadastro() { return dataCadastro; }
+    // O setter não é fornecido para dataCadastro, pois é inicializado no construtor/campo
 
-    public String getTelefone() { return telefone; }
-    public void setTelefone(String telefone) { this.telefone = telefone; }
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Cliente)) return false;
+        Cliente cliente = (Cliente) o;
+        return Objects.equals(id, cliente.id);
+    }
 
-    public String getEndereco() { return endereco; }
-    public void setEndereco(String endereco) { this.endereco = endereco; }
-
-    public TipoUsuario getTipoUsuario() { return tipoUsuario; }
-    public void setTipoUsuario(TipoUsuario tipoUsuario) { this.tipoUsuario = tipoUsuario; }
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 }
 

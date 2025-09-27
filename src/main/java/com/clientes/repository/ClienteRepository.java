@@ -4,8 +4,19 @@ import com.clientes.model.Cliente;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+import java.util.UUID;
+
 @Repository
-public interface ClienteRepository extends JpaRepository<Cliente, Long> {
-    // Aqui você pode adicionar métodos customizados, por exemplo:
-    // Optional<Cliente> findByEmail(String email);
+public interface ClienteRepository extends JpaRepository<Cliente, UUID> {
+    
+    /**
+     * Busca um cliente pelo seu login. 
+     * O login é o campo definido como unique na entidade Cliente.
+     */
+    Optional<Cliente> findByLogin(String login);
+    
+    // Opcional: Adicionar um método para verificar se um login já existe
+    boolean existsByLogin(String login);
 }
+
