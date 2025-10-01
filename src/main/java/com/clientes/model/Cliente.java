@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import java.time.LocalDate; // <-- NOVO IMPORT
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
@@ -31,35 +31,36 @@ public class Cliente {
     @Column(nullable = false)
     private String senha;
 
-    // --- NOVO CAMPO: dataNascimento (usado nos testes) ---
     @NotNull(message = "Data de nascimento não pode ser nula")
     @Column(nullable = false)
-    private LocalDate dataNascimento;
+    private LocalDate dataNascimento; // Campo adicionado e usado nos testes
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime dataCadastro = LocalDateTime.now();
 
-    // Construtor vazio (necessário pelo JPA)
+    // Construtor vazio (necessário pelo JPA/Hibernate)
     public Cliente() {}
 
-    // Construtor original de 3 argumentos
-    public Cliente(String nome, String email, String senha) {
-        this.nome = nome;
-        this.email = email;
-        this.senha = senha;
-        // O campo dataNascimento precisa ser inicializado ou o teste falhará
-        // Se este construtor não for usado nos testes que esperam 4 argumentos, pode ser mantido assim.
-        // Vamos focar no construtor de 4 argumentos.
-    }
-
-    // --- NOVO CONSTRUTOR de 4 argumentos (Corrige o erro de "no suitable constructor found") ---
+    /**
+     * Construtor completo com todos os campos (exceto ID e dataCadastro que são gerados).
+     * Este construtor é importante para facilitar a criação de objetos em testes.
+     */
     public Cliente(String nome, String email, String senha, LocalDate dataNascimento) {
         this.nome = nome;
         this.email = email;
         this.senha = senha;
-        this.dataNascimento = dataNascimento; // Inicializa o novo campo
-        this.dataCadastro = LocalDateTime.now();
+        this.dataNascimento = dataNascimento;
     }
+
+    // Opcional: construtor completo incluindo o ID para uso em testes de retorno.
+    public Cliente(UUID id, String nome, String email, String senha, LocalDate dataNascimento) {
+        this.id = id;
+        this.nome = nome;
+        this.email = email;
+        this.senha = senha;
+        this.dataNascimento = dataNascimento;
+    }
+
 
     // Getters e Setters
     public UUID getId() { return id; }
@@ -70,13 +71,13 @@ public class Cliente {
     public void setEmail(String email) { this.email = email; }
     public String getSenha() { return senha; }
     public void setSenha(String senha) { this.senha = senha; }
-
-    // --- NOVOS MÉTODOS: Getter e Setter para dataNascimento (Corrigem o erro "cannot find symbol") ---
+    
+    // Métodos essenciais corrigidos:
     public LocalDate getDataNascimento() { return dataNascimento; }
     public void setDataNascimento(LocalDate dataNascimento) { this.dataNascimento = dataNascimento; }
 
     public LocalDateTime getDataCadastro() { return dataCadastro; }
-    // Não é necessário um setter para dataCadastro se for gerado automaticamente
+
 
     @Override
     public boolean equals(Object o) {

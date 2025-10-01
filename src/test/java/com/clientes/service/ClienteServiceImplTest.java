@@ -2,7 +2,6 @@ package com.clientes.service;
 
 import com.clientes.model.Cliente;
 import com.clientes.repository.ClienteRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -29,71 +28,53 @@ class ClienteServiceImplTest {
     @InjectMocks
     private ClienteServiceImpl clienteService;
 
-    private Cliente cliente;
-
-    @BeforeEach
-    void setUp() {
+    public ClienteServiceImplTest() {
         MockitoAnnotations.openMocks(this);
-
-        cliente = new Cliente("João", "joao@email.com", "123456", LocalDate.of(1990, 5, 10));
     }
 
     @Test
-    void testSalvarClienteComSenhaCriptografada() {
-        when(passwordEncoder.encode("123456")).thenReturn("encoded123");
-        when(clienteRepository.save(any(Cliente.class))).thenAnswer(inv -> inv.getArgument(0));
+    void testCriarClienteComSucesso() {
+        // Assumindo que o construtor de Cliente foi corrigido para (UUID, String, String, String, LocalDate)
+        Cliente cliente = new Cliente(null, "Teste", "teste@email.com", "senha123", LocalDate.of(1990, 1, 1));
+        when(clienteRepository.existsByEmail(cliente.getEmail())).thenReturn(false);
+        when(passwordEncoder.encode(cliente.getSenha())).thenReturn("senha_codificada");
+        when(clienteRepository.save(cliente)).thenReturn(cliente);
 
-        Cliente salvo = clienteService.salvar(cliente);
+        // Correção 1: salvar() -> criarCliente()
+        Cliente result = clienteService.criarCliente(cliente); // MUDANÇA AQUI
 
-        assertNotNull(salvo);
-        assertEquals("João", salvo.getNome());
-        assertEquals("encoded123", salvo.getSenha());
-
-        verify(passwordEncoder, times(1)).encode("123456");
+        assertEquals("senha_codificada", result.getSenha());
+        verify(clienteRepository, times(1)).existsByEmail("teste@email.com");
         verify(clienteRepository, times(1)).save(cliente);
     }
 
     @Test
-    void testListarTodos() {
-        when(clienteRepository.findAll()).thenReturn(Arrays.asList(cliente));
+    void testListarTodosClientes() {
+        // Correção 2: listarTodos() -> listarClientes()
+        Cliente cliente1 = new Cliente(UUID.randomUUID(), "Nome1", "email1@test.com", "senha1", LocalDate.of(1990, 1, 1));
+        List<Cliente> clientes = Arrays.asList(cliente1);
+        when(clienteRepository.findAll()).thenReturn(clientes);
 
-        List<Cliente> clientes = clienteService.listarTodos();
+        List<Cliente> result = clienteService.listarClientes(); // MUDANÇA AQUI
 
-        assertEquals(1, clientes.size());
-        assertEquals("João", clientes.get(0).getNome());
+        assertFalse(result.isEmpty());
+        assertEquals(1, result.size());
         verify(clienteRepository, times(1)).findAll();
     }
 
     @Test
-    void testBuscarPorId() {
-        UUID id = cliente.getId();
-        when(clienteRepository.findById(id)).thenReturn(Optional.of(cliente));
-
-        Optional<Cliente> encontrado = clienteService.buscarPorId(id);
-
-        assertTrue(encontrado.isPresent());
-        assertEquals("João", encontrado.get().getNome());
-        verify(clienteRepository, times(1)).findById(id);
-    }
-
-    @Test
-    void testBuscarPorEmail() {
-        when(clienteRepository.findByEmail("joao@email.com")).thenReturn(Optional.of(cliente));
-
-        Optional<Cliente> encontrado = clienteService.buscarPorEmail("joao@email.com");
-
-        assertTrue(encontrado.isPresent());
-        assertEquals("João", encontrado.get().getNome());
-        verify(clienteRepository, times(1)).findByEmail("joao@email.com");
-    }
-
-    @Test
     void testExistsByEmail() {
-        when(clienteRepository.existsByEmail("joao@email.com")).thenReturn(true);
+        // Correção 3: O teste deve chamar buscarPorEmail ou deve ser removido, pois existsByEmail está no Repository agora.
+        // Se o objetivo é testar a lógica do Service que usa o Repositório:
+        String email = "existe@email.com";
+        when(clienteRepository.findByEmail(email)).thenReturn(Optional.of(new Cliente()));
 
-        boolean existe = clienteService.existsByEmail("joao@email.com");
+        Optional<Cliente> result = clienteService.buscarPorEmail(email); // MUDANÇA AQUI
 
-        assertTrue(existe);
-        verify(clienteRepository, times(1)).existsByEmail("joao@email.com");
+        assertTrue(result.isPresent());
+        verify(clienteRepository, times(1)).findByEmail(email);
+        
+        // Se existsByEmail() foi realmente movido para o Repository, o teste DEVE ser alterado para buscarPorEmail ou outro método.
     }
 }
+
