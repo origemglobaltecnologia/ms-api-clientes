@@ -5,10 +5,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
-import java.time.LocalDate;
 import java.util.Optional;
+import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
 class ClienteRepositoryTest {
@@ -17,21 +17,30 @@ class ClienteRepositoryTest {
     private ClienteRepository clienteRepository;
 
     @Test
-    void testSaveAndFindByEmail() {
-        Cliente cliente = new Cliente("Maria", "maria@email.com", "senha123", LocalDate.of(1985, 3, 15));
+    void testFindByEmail() {
+        String email = "teste@repo.com";
+        // CORREÇÃO: Usando o construtor correto de 3 argumentos
+        Cliente cliente = new Cliente("Repo Test", email, "senha123");
         clienteRepository.save(cliente);
 
-        Optional<Cliente> encontrado = clienteRepository.findByEmail("maria@email.com");
-        assertThat(encontrado).isPresent();
-        assertThat(encontrado.get().getNome()).isEqualTo("Maria");
+        Optional<Cliente> found = clienteRepository.findByEmail(email);
+
+        assertTrue(found.isPresent());
+        assertEquals(email, found.get().getEmail());
     }
 
     @Test
     void testExistsByEmail() {
-        Cliente cliente = new Cliente("Carlos", "carlos@email.com", "senha123", LocalDate.of(1992, 8, 20));
+        String email = "exists@repo.com";
+        // CORREÇÃO: Usando o construtor correto de 3 argumentos
+        Cliente cliente = new Cliente("Exist Test", email, "senha123");
         clienteRepository.save(cliente);
 
-        boolean existe = clienteRepository.existsByEmail("carlos@email.com");
-        assertThat(existe).isTrue();
+        boolean exists = clienteRepository.existsByEmail(email);
+        boolean notExists = clienteRepository.existsByEmail("naoexiste@repo.com");
+
+        assertTrue(exists);
+        assertFalse(notExists);
     }
 }
+

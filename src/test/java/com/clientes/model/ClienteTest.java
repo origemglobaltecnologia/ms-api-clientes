@@ -1,33 +1,49 @@
 package com.clientes.model;
 
 import org.junit.jupiter.api.Test;
-
-import java.time.LocalDate;
+import java.util.UUID;
+import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class ClienteTest {
 
     @Test
-    void testGettersAndSetters() {
+    void testSettersAndGetters() {
         Cliente cliente = new Cliente();
-        cliente.setNome("João");
-        cliente.setEmail("joao@email.com");
-        cliente.setSenha("senha123");
-        cliente.setDataNascimento(LocalDate.of(1990, 5, 10));
+        UUID id = UUID.randomUUID();
+        LocalDateTime dataCadastro = LocalDateTime.now();
 
-        assertEquals("João", cliente.getNome());
-        assertEquals("joao@email.com", cliente.getEmail());
-        assertEquals("senha123", cliente.getSenha());
-        assertEquals(LocalDate.of(1990, 5, 10), cliente.getDataNascimento());
+        cliente.setId(id);
+        cliente.setNome("Alice");
+        cliente.setEmail("alice@test.com");
+        cliente.setSenha("securepass");
+        // setDataNascimento() foi removido
+
+        assertEquals(id, cliente.getId());
+        assertEquals("Alice", cliente.getNome());
+        assertEquals("alice@test.com", cliente.getEmail());
+        assertEquals("securepass", cliente.getSenha());
+        assertNotNull(cliente.getDataCadastro());
+        // getDataNascimento() foi removido
     }
 
     @Test
-    void testEqualsAndHashCode() {
-        Cliente cliente1 = new Cliente("João", "joao@email.com", "123456", LocalDate.of(1990, 5, 10));
-        Cliente cliente2 = new Cliente("João", "joao@email.com", "123456", LocalDate.of(1990, 5, 10));
+    void testEqualityAndHashCode() {
+        UUID id1 = UUID.randomUUID();
+        UUID id2 = UUID.randomUUID();
 
-        assertNotEquals(cliente1, cliente2); // ids UUID diferentes
-        assertNotEquals(cliente1.hashCode(), cliente2.hashCode());
+        // CORREÇÃO: Usando o construtor correto de 4 argumentos (UUID, String, String, String)
+        Cliente clienteA = new Cliente(id1, "Teste", "a@test.com", "pass");
+        Cliente clienteB = new Cliente(id1, "Teste", "a@test.com", "pass");
+        
+        // CORREÇÃO: Usando o construtor correto de 4 argumentos
+        Cliente clienteC = new Cliente(id2, "Outro", "c@test.com", "pass");
+
+        assertEquals(clienteA, clienteB);
+        assertEquals(clienteA.hashCode(), clienteB.hashCode());
+        assertNotEquals(clienteA, clienteC);
+        assertNotEquals(clienteA.hashCode(), clienteC.hashCode());
     }
 }
+
