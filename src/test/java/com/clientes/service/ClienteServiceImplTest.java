@@ -11,7 +11,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -43,7 +42,7 @@ class ClienteServiceImplTest {
         // Cliente de entrada (senha clara)
         Cliente clienteEntrada = new Cliente("Teste", "teste@email.com", "senha123");
 
-        // Mock do encoder para retornar a senha codificada
+        // Mock do encoder para retornar a senha codificada fixamente
         String senhaCodificada = "senha_codificada";
         when(passwordEncoder.encode(clienteEntrada.getSenha())).thenReturn(senhaCodificada);
 
