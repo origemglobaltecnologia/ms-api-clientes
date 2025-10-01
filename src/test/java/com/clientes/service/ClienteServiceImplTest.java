@@ -33,27 +33,40 @@ class ClienteServiceImplTest {
         MockitoAnnotations.openMocks(this);
     }
 
-    // Método auxiliar usando o construtor correto: Cliente(UUID, String, String, String)
-    private Cliente createTestCliente(UUID id, String nome) {
-        return new Cliente(id, nome, nome + "@test.com", "senha123");
+    // Método auxiliar (Pode ser mantido, mas não é usado no teste corrigido abaixo)
+    private Cliente createTestCliente(UUID id, String nome, String senha) {
+        return new Cliente(id, nome, nome + "@test.com", senha);
     }
 
     @Test
     void testCriarClienteComSucesso() {
-        // Cliente de entrada (sem ID)
+        // 1. Cliente de entrada (sem ID, com senha clara)
         Cliente clienteEntrada = new Cliente("Teste", "teste@email.com", "senha123");
         
-        // Cliente que seria salvo e retornado (com ID e senha codificada)
-        Cliente clienteSalvo = createTestCliente(UUID.randomUUID(), "Teste");
+        // 2. Mockamos o que o encoder fará
+        String senhaCodificada = "senha_codificada";
+        when(passwordEncoder.encode(clienteEntrada.getSenha())).thenReturn(senhaCodificada);
+        
+        // 3. Criamos o objeto que o Repository VAI RETORNAR.
+        // Ele DEVE ter a senha codificada para simular o comportamento real do serviço.
+        Cliente clienteSalvoMock = new Cliente(
+            UUID.randomUUID(), 
+            "Teste", 
+            "teste@email.com", 
+            senhaCodificada // USANDO A SENHA CODIFICADA AQUI
+        );
 
         when(clienteRepository.existsByEmail(clienteEntrada.getEmail())).thenReturn(false);
-        when(passwordEncoder.encode(clienteEntrada.getSenha())).thenReturn("senha_codificada");
-        when(clienteRepository.save(any(Cliente.class))).thenReturn(clienteSalvo);
+        
+        // 4. O Repository MOCK retorna o objeto com a senha codificada.
+        when(clienteRepository.save(any(Cliente.class))).thenReturn(clienteSalvoMock);
 
-        // CORREÇÃO: salvar() -> criarCliente()
+        // Ação: Chama o método real
         Cliente result = clienteService.criarCliente(clienteEntrada); 
 
-        assertEquals("senha_codificada", result.getSenha());
+        // 5. Verificação: O resultado final (o objeto retornado pelo serviço)
+        // deve ter a senha codificada.
+        assertEquals(senhaCodificada, result.getSenha());
         verify(clienteRepository, times(1)).existsByEmail("teste@email.com");
         verify(clienteRepository, times(1)).save(any(Cliente.class));
     }
@@ -61,11 +74,11 @@ class ClienteServiceImplTest {
     @Test
     void testListarTodosClientes() {
         UUID id1 = UUID.randomUUID();
-        Cliente cliente1 = createTestCliente(id1, "Nome1");
+        // Usamos o auxiliar, com a senha clara, pois é apenas um objeto mock
+        Cliente cliente1 = createTestCliente(id1, "Nome1", "senha123"); 
         List<Cliente> clientes = Arrays.asList(cliente1);
         when(clienteRepository.findAll()).thenReturn(clientes);
 
-        // CORREÇÃO: listarTodos() -> listarClientes()
         List<Cliente> result = clienteService.listarClientes(); 
 
         assertFalse(result.isEmpty());
@@ -76,10 +89,8 @@ class ClienteServiceImplTest {
     void testNaoCriarClienteSeEmailExiste() {
         Cliente cliente = new Cliente("Existe", "existe@email.com", "senha123");
         
-        // CORREÇÃO: O ServiceImpl usa existsByEmail para verificar
         when(clienteRepository.existsByEmail(cliente.getEmail())).thenReturn(true);
 
-        // Espera-se que lance a exceção
         assertThrows(IllegalArgumentException.class, () -> clienteService.criarCliente(cliente));
 
         verify(clienteRepository, never()).save(any(Cliente.class));
