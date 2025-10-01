@@ -24,6 +24,7 @@ public class ClienteServiceImpl implements ClienteService {
         if (clienteRepository.existsByEmail(cliente.getEmail())) {
             throw new IllegalArgumentException("Email já cadastrado");
         }
+        // Codifica a senha antes de salvar
         cliente.setSenha(passwordEncoder.encode(cliente.getSenha()));
         return clienteRepository.save(cliente);
     }
@@ -48,6 +49,7 @@ public class ClienteServiceImpl implements ClienteService {
         return clienteRepository.findById(id).map(clienteExistente -> {
             clienteExistente.setNome(dadosAtualizados.getNome());
             clienteExistente.setEmail(dadosAtualizados.getEmail());
+            // Codifica a senha apenas se houver alteração
             if (dadosAtualizados.getSenha() != null && !dadosAtualizados.getSenha().isEmpty()) {
                 clienteExistente.setSenha(passwordEncoder.encode(dadosAtualizados.getSenha()));
             }
