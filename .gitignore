@@ -1,6 +1,6 @@
 # Arquivos compilados Java
 *.class
-*.jar
+#*.jar
 *.war
 *.ear
 
